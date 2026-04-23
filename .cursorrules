@@ -1,0 +1,55 @@
+# 生成 AGENTS.md 文件内容
+agents_content = """# 个人作品集网站开发指令 (AI Agent Specification)
+
+## 1. 项目概述
+使用 React + TypeScript + Tailwind CSS 开发的高质量个人作品集网站。该项目采用“开发者美学”设计理念，旨在通过 IDE 级的深色模式和像素级微交互，展示开发者的硬核工程能力与专业素养。
+
+## 2. 技术栈要求
+- **核心框架**: React 18 (函数式组件 + Hooks)
+- **构建工具**: Vite
+- **开发语言**: TypeScript (必须严格定义 Data Interfaces)
+- **样式方案**: Tailwind CSS (Utility-first)
+- **动画引擎**: Framer Motion
+- **路由管理**: React Router v6
+- **部署环境**: Vercel (需包含专用路由重写配置)
+
+## 3. 开发规范
+- **组件化**: 保持组件高内聚低耦合，UI 逻辑与数据层分离。通用元素（如标签 Pill、图标）放入 `Shared/`。
+- **类型安全**: 所有静态数据（经历、项目）必须通过 `src/types/index.ts` 定义接口。
+- **代码注释**: 关键逻辑（如滚动监听、404 打字机动画）需提供清晰的技术注释。
+- **工程化**: 遵循静态目录结构，数据驱动视图。
+
+## 4. 设计要求 (IDE Aesthetics)
+- **色彩规范**:
+    - 背景: `#0a0a0a` (或 PRD 指定的 `#0f172a`)。
+    - 文字: 主色 `#ffffff` / `#e2e8f0`，副色 `#94a3b8`。
+    - 强调色: 高饱和度渐变或单色（如青色 `#5eead4`），用于链接和高亮。
+- **布局逻辑**:
+    - **Desktop**: 非对称双栏布局。左侧固定 (Sticky)，右侧滚动。
+    - **Mobile**: 自动降级为单栏瀑布流布局。
+- **核心交互**:
+    - **Spotlight**: 实现随鼠标移动的径向渐变背景光晕。
+    - **Scrollspy**: 侧边栏导航需根据内容区滚动位置动态高亮。
+    - **Micro-interactions**: 卡片悬停时背景轻微提亮，标题颜色平滑过渡。
+
+## 5. 核心模块实现逻辑
+- **Sidebar**: 包含 H1 姓名、职业头衔、使命陈述、导航链接及社交 Icon 矩阵。
+- **Main Content**:
+    - **About**: 纯文本展示，核心技术词汇需加粗或变色。
+    - **Experience/Projects**: 采用隐形卡片设计，包含时间线、职责描述及技术栈 Pill。
+- **404 Terminal**:
+    - 强制等宽字体 (`font-mono`)。
+    - 模拟打字机逐字输出 `NullPointerException` 错误日志。
+    - 提供 `$ cd /home` 风格的返回链接。
+
+## 6. 注意事项与优化
+- **简洁性**: 保持极简主义，拒绝多余的装饰，强调信息密度与排版。
+- **性能**: 图片使用懒加载；核心 Web 指标（LCP）控制在 2.5s 内。
+- **无障碍 (A11Y)**: 确保全键盘可导航 (`Tab` 键支持)，焦点状态必须有清晰的 Outline。
+- **部署**: 根目录必须包含 `vercel.json` 以解决 SPA 路由刷新 404 问题。
+
+## 7. 部署配置 (vercel.json)
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
