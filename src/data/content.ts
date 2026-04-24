@@ -1,10 +1,10 @@
 import type { Experience, PortfolioData, Profile, Project, SocialLink } from '../types'
 
 export const PROFILE: Profile = {
-  name: 'Hongjian',
-  title: '2027届研究生 | Java后端与分布式系统工程方向',
+  name: '李雪庚',
+  title: '中国海洋大学 | 计算机技术专业 | 2027届研究生',
   statement:
-    '专注于高并发后端与分布式系统落地，持续打磨从消息链路、缓存架构到一致性与可观测性的端到端工程能力。',
+    '研究方向:时间敏感网络(TSN) | 一枚努力寻找暑期实习的Java菜鸟~',
 }
 
 export const EXPERIENCES: Experience[] = [
