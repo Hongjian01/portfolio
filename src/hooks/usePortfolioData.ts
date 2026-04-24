@@ -16,14 +16,32 @@ function normalizePortfolioData(rawData: Partial<PortfolioData>): PortfolioData 
   }
 }
 
+// 提取一个同步读取本地缓存的函数
+function getLocalDataOrDefault(): PortfolioData {
+  const savedData = localStorage.getItem(STORAGE_KEY)
+  if (savedData) {
+    try {
+      return normalizePortfolioData(JSON.parse(savedData))
+    } catch {
+      // 解析失败忽略
+    }
+  }
+  return getInitialPortfolioData()
+}
+
 function usePortfolioData() {
-  const [data, setData] = useState<PortfolioData>(getInitialPortfolioData())
+  // 1. 初始化时，直接同步拿到本地缓存数据，不要等
+  const [data, setData] = useState<PortfolioData>(getLocalDataOrDefault)
+  
+  // 2. 只有在本地完全没有缓存（初次访问）时，才显示加载动画
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    return localStorage.getItem(STORAGE_KEY) === null
+  })
 
   useEffect(() => {
-    // 定义一个异步函数来获取数据
     const fetchCloudData = async () => {
       try {
-        // 1. 先尝试从 Supabase 获取
+        // 悄悄去云端请求数据
         const { data: cloudResponse, error } = await supabase
           .from('portfolio_data')
           .select('content')
@@ -32,25 +50,15 @@ function usePortfolioData() {
 
         if (cloudResponse && cloudResponse.content && !error) {
           const cloudData = cloudResponse.content as PortfolioData
+          // 拿到新数据后，无缝替换当前 UI，并更新本地缓存
           setData(cloudData)
-          // 同步更新本地缓存，保证下次加载速度
           localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData))
-          console.log('✅ 云端数据加载成功')
-          return
         }
       } catch (err) {
-        console.error('❌ 获取云端数据失败，将回退到本地缓存:', err)
-      }
-
-      // 2. 如果云端失败，回退到原来的 localStorage 逻辑
-      const savedData = localStorage.getItem(STORAGE_KEY)
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData)
-          setData(normalizePortfolioData(parsed))
-        } catch {
-          setData(getInitialPortfolioData())
-        }
+        console.error('后台获取数据失败:', err)
+      } finally {
+        // 无论成功失败，都确保关闭首屏的 loading
+        setIsLoading(false)
       }
     }
 
@@ -58,11 +66,9 @@ function usePortfolioData() {
   }, [])
 
   const updateData = async (newData: PortfolioData) => {
-    // 乐观更新：先改 UI
     setData(newData)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newData))
 
-    // 同步到云端
     const { error } = await supabase
       .from('portfolio_data')
       .update({ content: newData })
@@ -80,7 +86,7 @@ function usePortfolioData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialData))
   }
 
-  return { data, updateData, resetData }
+  return { data, updateData, resetData, isLoading }
 }
 
 export default usePortfolioData

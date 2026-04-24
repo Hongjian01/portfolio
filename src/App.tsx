@@ -74,7 +74,18 @@ function AdminPage({ data, updateData, resetData }: AdminPageProps) {
 }
 
 function App() {
-  const { data, updateData, resetData } = usePortfolioData()
+  const { data, isLoading, updateData, resetData } = usePortfolioData()
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-slate-200">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-700 border-t-teal-300" />
+          <p className="text-sm text-slate-300 animate-pulse">正在同步云端数据...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <BrowserRouter>
