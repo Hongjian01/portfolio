@@ -46,7 +46,7 @@ function HomePage({ data }: HomePageProps) {
 
 interface AdminPageProps {
   data: PortfolioData
-  updateData: (newData: PortfolioData) => void
+  updateData: (newData: PortfolioData) => Promise<void>
   resetData: () => void
 }
 

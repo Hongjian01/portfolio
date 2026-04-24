@@ -3,12 +3,17 @@ import type { Experience, PortfolioData, Project } from '../../types'
 
 interface DashboardProps {
   data: PortfolioData
-  updateData: (newData: PortfolioData) => void
+  updateData: (newData: PortfolioData) => Promise<void>
   resetData: () => void
 }
 
 function Dashboard({ data, updateData, resetData }: DashboardProps) {
   const [formData, setFormData] = useState<PortfolioData>(data)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveNotice, setSaveNotice] = useState<{
+    type: 'success' | 'error' | 'info'
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     setFormData(data)
@@ -122,9 +127,19 @@ function Dashboard({ data, updateData, resetData }: DashboardProps) {
     }))
   }
 
-  const handleSave = () => {
-    updateData(formData)
-    window.alert('保存成功，主站数据已更新。')
+  const handleSave = async () => {
+    setSaveNotice({ type: 'info', message: '正在保存到 Supabase...' })
+    setIsSaving(true)
+    try {
+      await updateData(formData)
+      setSaveNotice({ type: 'success', message: '保存成功，云端数据已更新。' })
+    } catch (error) {
+      console.error('保存到 Supabase 失败:', error)
+      const message = error instanceof Error ? error.message : '保存失败，请稍后重试。'
+      setSaveNotice({ type: 'error', message: `保存失败：${message}` })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleReset = () => {
@@ -134,7 +149,7 @@ function Dashboard({ data, updateData, resetData }: DashboardProps) {
     }
 
     resetData()
-    window.alert('已重置为初始数据。')
+    setSaveNotice({ type: 'info', message: '已重置为初始数据，请记得点击“保存更改”同步到云端。' })
   }
 
   return (
@@ -142,6 +157,19 @@ function Dashboard({ data, updateData, resetData }: DashboardProps) {
       <div>
         <h1 className="text-2xl font-semibold text-slate-100">Portfolio CMS Dashboard</h1>
         <p className="mt-2 text-sm text-slate-400">编辑后点击“保存更改”即可写入 LocalStorage。</p>
+        {saveNotice ? (
+          <div
+            className={`mt-4 rounded-lg border px-3 py-2 text-sm ${
+              saveNotice.type === 'success'
+                ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+                : saveNotice.type === 'error'
+                  ? 'border-rose-400/30 bg-rose-400/10 text-rose-300'
+                  : 'border-sky-400/30 bg-sky-400/10 text-sky-300'
+            }`}
+          >
+            {saveNotice.message}
+          </div>
+        ) : null}
       </div>
 
       <section className="space-y-4 rounded-xl border border-slate-800 bg-slate-950/40 p-5">
@@ -406,9 +434,10 @@ function Dashboard({ data, updateData, resetData }: DashboardProps) {
         <button
           type="button"
           onClick={handleSave}
+          disabled={isSaving}
           className="rounded-lg bg-teal-400/20 px-5 py-2.5 font-medium text-teal-300 transition-colors hover:bg-teal-400/30"
         >
-          保存更改
+          {isSaving ? '保存中...' : '保存更改'}
         </button>
         <button
           type="button"
